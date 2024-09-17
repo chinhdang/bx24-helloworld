@@ -82,6 +82,7 @@ $b24Service = $b24ServiceBuilderFactory->initFromRequest($appProfile, AuthToken:
 $userProfile = $bitrix24->getMainScope()->main()->getCurrentUserProfile()->getUserProfile();
 var_dump($userProfile);
 
+/*
 // Xử lý các sự kiện từ Bitrix24
 if ($request->request->has('event')) {
     $event = $request->request->get('event');
@@ -106,6 +107,7 @@ if ($request->request->has('event')) {
     echo 'No event received from Bitrix24.';
     // Xử lý nếu cần
 }
+*/
 
 // Retrieve the current user's profile using the getMainScope() method and dump the result
 $userProfile = $bitrix24->getMainScope()->main()->getCurrentUserProfile()->getUserProfile();
