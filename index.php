@@ -100,14 +100,22 @@ var_dump($userProfile);
 
 $deals = $b24Service->getCRMScope()->deal()->{'list'}([], [], ['ID', 'TITLE'])->getDeals(); 
 if (!empty($deals)) {
-    echo 'Danh sách các deals:<br>';
+    echo '<h3>Danh sách các deals:</h3>';
+    echo '<table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse;">';
+    echo '<tr>';
+    echo '<th>Deal ID</th>';
+    echo '<th>Title</th>';
+    echo '</tr>';
     foreach ($deals as $deal) {
-        echo 'Deal ID: ' . $deal->ID . ', Title: ' . $deal->TITLE . '<br>';
+        echo '<tr>';
+        echo '<td>' . htmlspecialchars($deal->ID) . '</td>';
+        echo '<td>' . htmlspecialchars($deal->TITLE) . '</td>';
+        echo '</tr>';
     }
+    echo '</table>';
 } else {
     echo 'Không tìm thấy deal nào.';
 }
-
 
 // Hàm lấy thông tin xác thực
 function getAuth($request)
