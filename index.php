@@ -108,8 +108,10 @@ if (!empty($deals)) {
     echo '</tr>';
     foreach ($deals as $deal) {
         echo '<tr>';
-        echo '<td>' . htmlspecialchars($deal->ID) . '</td>';
-        echo '<td>' . htmlspecialchars($deal->TITLE) . '</td>';
+        // Xuất trực tiếp $deal->ID mà không cần dùng htmlspecialchars()
+        echo '<td>' . $deal->ID . '</td>';
+        // Đảm bảo $deal->TITLE là chuỗi trước khi truyền vào htmlspecialchars()
+        echo '<td>' . htmlspecialchars((string)$deal->TITLE) . '</td>';
         echo '</tr>';
     }
     echo '</table>';
