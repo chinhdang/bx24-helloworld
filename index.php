@@ -97,9 +97,9 @@ var_dump($userProfile);
 // The TITLE property accesses the title of the first deal
 // var_dump($b24Service->getCRMScope()->deal()->list([], [], ['ID', 'TITLE'])->getDeals()[0]->TITLE);
 
-$deals = $b24Service->getCRMScope()->deal()->list([], [], ['ID', 'TITLE'])->getDeals();
+$deals = $b24Service->getCRMScope()->deal()->list([], [], ['ID', 'TITLE'])->getDeals()[];
 if (!empty($deals)) {
-    echo 'First Deal Title: ' . $deals[0]->TITLE;
+    echo 'List Deal Title: ' . $deals[]->TITLE;
 } else {
     echo 'No deal found.';
 }
