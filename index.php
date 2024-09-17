@@ -82,8 +82,8 @@ $appProfile = ApplicationProfile::initFromArray([
 ]);
 
 // Initialize the Bitrix24 service using the application profile, authentication token, and domain from the request
-// $b24Service = $b24ServiceBuilderFactory->initFromRequest($appProfile, AuthToken::initFromPlacementRequest($request), $request->get('DOMAIN'));
-$b24Service = $b24ServiceBuilderFactory->getServiceBuilder($appProfile, $auth, $auth->getMemberId());
+$b24Service = $b24ServiceBuilderFactory->initFromRequest($appProfile, AuthToken::initFromPlacementRequest($request), $request->get('DOMAIN'));
+
 
 
 // Retrieve the current user's profile using the getMainScope() method and dump the result
