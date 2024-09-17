@@ -82,7 +82,8 @@ $appProfile = ApplicationProfile::initFromArray([
 ]);
 
 // Initialize the Bitrix24 service using the application profile, authentication token, and domain from the request
-$b24Service = $b24ServiceBuilderFactory->initFromRequest($appProfile, AuthToken::initFromPlacementRequest($request), $request->get('DOMAIN'));
+// $b24Service = $b24ServiceBuilderFactory->initFromRequest($appProfile, AuthToken::initFromPlacementRequest($request), $request->get('DOMAIN'));
+$b24Service = $b24ServiceBuilderFactory->getServiceBuilder($appProfile, $auth, $auth->getMemberId());
 
 
 // Retrieve the current user's profile using the getMainScope() method and dump the result
@@ -97,12 +98,16 @@ var_dump($userProfile);
 // The TITLE property accesses the title of the first deal
 // var_dump($b24Service->getCRMScope()->deal()->list([], [], ['ID', 'TITLE'])->getDeals()[0]->TITLE);
 
-$deals = $b24Service->getCRMScope()->deal()->list([], [], ['ID', 'TITLE'])->getDeals()[];
+$deals = $b24Service->getCRMScope()->deal()->{'list'}([], [], ['ID', 'TITLE'])->getDeals(); 
 if (!empty($deals)) {
-    echo 'List Deal Title: ' . $deals[]->TITLE;
+    echo 'Danh sách các deals:<br>';
+    foreach ($deals as $deal) {
+        echo 'Deal ID: ' . $deal->ID . ', Title: ' . $deal->TITLE . '<br>';
+    }
 } else {
-    echo 'No deal found.';
+    echo 'Không tìm thấy deal nào.';
 }
+
 
 // Hàm lấy thông tin xác thực
 function getAuth($request)
@@ -110,13 +115,17 @@ function getAuth($request)
     if (isset($_SESSION['AUTH'])) {
         return AuthToken::initFromArray($_SESSION['AUTH']);
     } elseif ($request->request->has('AUTH_ID') && $request->request->has('REFRESH_ID')) {
+        $expiresIn = (int)$request->request->get('AUTH_EXPIRES');
+        $expires = time() + $expiresIn;
+        
         $authData = [
             'access_token' => $request->request->get('AUTH_ID'),
             'refresh_token' => $request->request->get('REFRESH_ID'),
             'member_id' => $request->request->get('member_id'),
             'domain' => $request->request->get('DOMAIN'),
             'application_token' => $request->request->get('APP_SID'),
-            'expires_in' => $request->request->get('AUTH_EXPIRES'),
+            'expires_in' => $expiresIn,
+            'expires' => $expires, // Thêm khóa 'expires' vào mảng
         ];
 
         $_SESSION['AUTH'] = $authData;
