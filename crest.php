@@ -56,7 +56,7 @@ class CRest
            return false;
        }
    }
-   
+
     public static function callBatch($calls = [])
     {
         $results = [];
@@ -82,18 +82,6 @@ class CRest
         }
 
         return $results;
-    }
-
-    protected static function getAuth()
-    {
-        if (isset($_SESSION['AUTH'])) {
-            return $_SESSION['AUTH'];
-        } elseif (isset($_REQUEST['auth'])) {
-            $_SESSION['AUTH'] = $_REQUEST['auth'];
-            return $_SESSION['AUTH'];
-        } else {
-            return false;
-        }
     }
 
     protected static function getNewAuth()
