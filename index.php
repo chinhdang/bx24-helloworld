@@ -11,8 +11,10 @@
 
 // Declare strict type checking for the PHP script
  declare(strict_types=1);
-
  session_start();
+
+ // Include the autoloader file, which is responsible for loading the dependencies required by the script
+require_once __DIR__ . '/vendor/autoload.php';
 
 // Import necessary classes from the Bitrix24 PHP SDK and other dependencies
 use Bitrix24\SDK\Core\Credentials\AuthToken; // Represents an authentication token used to authenticate with the Bitrix24 API
@@ -24,8 +26,15 @@ use Monolog\Processor\MemoryUsageProcessor; // Processor that logs memory usage 
 use Symfony\Component\EventDispatcher\EventDispatcher; // Event dispatcher that can be used to dispatch events
 use Symfony\Component\HttpFoundation\Request; // Represents an HTTP request
 
-// Include the autoloader file, which is responsible for loading the dependencies required by the script
-require_once 'vendor/autoload.php'; 
+// Tạo logger (không bắt buộc)
+$log = new Logger('bitrix24-php-sdk'); // Create a new logger instance with the name 'bitrix24-php-sdk'
+$log->pushHandler(new StreamHandler('bitrix24-php-sdk.log')); // Add a stream handler to the logger, which will log messages to a file named 'bitrix24-php-sdk.log'
+$log->pushProcessor(new MemoryUsageProcessor(true, true)); // Add a memory usage processor to the logger, which will log memory usage information
+
+// Create a new request object from the current HTTP request
+$request = Request::createFromGlobals(); 
+
+// In ra nội dung của $_REQUEST
 ?>
     <pre>
     Application is worked, auth tokens from bitrix24:
@@ -33,19 +42,26 @@ require_once 'vendor/autoload.php';
 </pre>
 <?php
 
-// Create a new request object from the current HTTP request
-$request = Request::createFromGlobals(); 
+// Lấy thông tin xác thực
+$auth = getAuth($request);
 
+/*
 // Kiểm tra xem có nhận được thông tin xác thực hay không
 if ($request->request->has('auth')) {
     echo 'Received auth data from Bitrix24.';
 } else {
     echo 'No auth data received from Bitrix24.';
 };
+*/
 
-$log = new Logger('bitrix24-php-sdk'); // Create a new logger instance with the name 'bitrix24-php-sdk'
-$log->pushHandler(new StreamHandler('bitrix24-php-sdk.log')); // Add a stream handler to the logger, which will log messages to a file named 'bitrix24-php-sdk.log'
-$log->pushProcessor(new MemoryUsageProcessor(true, true)); // Add a memory usage processor to the logger, which will log memory usage information
+// Kiểm tra giá trị của $auth
+if ($auth instanceof AuthToken) {
+    echo 'Received auth data from Bitrix24.';
+} else {
+    echo 'No auth data received from Bitrix24.';
+    exit;
+}
+
 
 // Create a new service builder factory instance with an event dispatcher and logger
 $b24ServiceBuilderFactory = new ServiceBuilderFactory(new EventDispatcher(), $log); 
@@ -63,7 +79,37 @@ $appProfile = ApplicationProfile::initFromArray([
 $b24Service = $b24ServiceBuilderFactory->initFromRequest($appProfile, AuthToken::initFromPlacementRequest($request), $request->get('DOMAIN'));
 
 // Retrieve the current user's profile using the getMainScope() method and dump the result
-var_dump($b24Service->getMainScope()->main()->getCurrentUserProfile()->getUserProfile());
+$userProfile = $bitrix24->getMainScope()->main()->getCurrentUserProfile()->getUserProfile();
+var_dump($userProfile);
+
+// Xử lý các sự kiện từ Bitrix24
+if ($request->request->has('event')) {
+    $event = $request->request->get('event');
+
+    switch ($event) {
+        case 'ONAPPINSTALL':
+            // Xử lý sự kiện cài đặt ứng dụng
+            handleAppInstall($bitrix24, $request);
+            break;
+
+        case 'ONIMBOTMESSAGEADD':
+            // Xử lý sự kiện nhận tin nhắn
+            handleIncomingMessage($bitrix24, $request);
+            break;
+
+        // Thêm các trường hợp khác nếu cần
+        default:
+            // Xử lý các sự kiện khác
+            break;
+    }
+} else {
+    echo 'No event received from Bitrix24.';
+    // Xử lý nếu cần
+}
+
+// Retrieve the current user's profile using the getMainScope() method and dump the result
+$userProfile = $bitrix24->getMainScope()->main()->getCurrentUserProfile()->getUserProfile();
+var_dump($userProfile);
 
 // Retrieve a list of deals and address to the first element
 // The getCRMScope() method returns the CRM scope of the service, which provides access to the deals
@@ -71,4 +117,34 @@ var_dump($b24Service->getMainScope()->main()->getCurrentUserProfile()->getUserPr
 // The getLeads() method returns the list of deals
 // The [0] index accesses the first deal in the list
 // The TITLE property accesses the title of the first deal
-var_dump($b24Service->getCRMScope()->lead()->list([], [], ['ID', 'TITLE'])->getLeads()[0]->TITLE);
+// var_dump($b24Service->getCRMScope()->lead()->list([], [], ['ID', 'TITLE'])->getLeads()[0]->TITLE);
+
+$leads = $bitrix24->getCRMScope()->lead()->list([], [], ['ID', 'TITLE'])->getLeads();
+if (!empty($leads)) {
+    echo 'First Lead Title: ' . $leads[0]->TITLE;
+} else {
+    echo 'No leads found.';
+}
+
+// Hàm lấy thông tin xác thực
+function getAuth($request)
+{
+    if (isset($_SESSION['AUTH'])) {
+        return AuthToken::initFromArray($_SESSION['AUTH']);
+    } elseif ($request->request->has('AUTH_ID') && $request->request->has('REFRESH_ID')) {
+        $authData = [
+            'access_token' => $request->request->get('AUTH_ID'),
+            'refresh_token' => $request->request->get('REFRESH_ID'),
+            'member_id' => $request->request->get('member_id'),
+            'domain' => $request->request->get('DOMAIN'),
+            'application_token' => $request->request->get('APP_SID'),
+            'expires_in' => $request->request->get('AUTH_EXPIRES'),
+        ];
+
+        $_SESSION['AUTH'] = $authData;
+
+        return AuthToken::initFromArray($authData);
+    } else {
+        return null; // Trả về null thay vì false
+    }
+}
