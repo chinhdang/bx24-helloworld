@@ -22,10 +22,12 @@
         }
     ],
     "config": {
-    "vendor-dir": "vendor",
-    "preferred-install": "dist",
-    "archive": {
-        "exclude": [".github"]
+        "vendor-dir": "vendor",
+        "preferred-install": "dist",
+        "archive": {
+            "exclude": [
+                ".github"
+            ]
         }
     },
     "minimum-stability": "stable"
