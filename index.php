@@ -1,5 +1,5 @@
 <?php
-session_start();
+
 /**
  * This file is part of the bitrix24-php-sdk package.
  *
@@ -11,6 +11,8 @@ session_start();
 
 // Declare strict type checking for the PHP script
  declare(strict_types=1);
+
+ session_start();
 
 // Import necessary classes from the Bitrix24 PHP SDK and other dependencies
 use Bitrix24\SDK\Core\Credentials\AuthToken; // Represents an authentication token used to authenticate with the Bitrix24 API
