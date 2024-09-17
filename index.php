@@ -13,6 +13,12 @@
  declare(strict_types=1);
  session_start();
 
+// Hiển thị lỗi
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+
  // Include the autoloader file, which is responsible for loading the dependencies required by the script
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -70,8 +76,8 @@ $b24ServiceBuilderFactory = new ServiceBuilderFactory(new EventDispatcher(), $lo
 // The array contains the client ID, client secret, and scope for the Bitrix24 application
 // The INSERT_HERE_YOUR_DATA placeholders should be replaced with actual values
 $appProfile = ApplicationProfile::initFromArray([
-    'BITRIX24_PHP_SDK_APPLICATION_CLIENT_ID' => 'local.66e95a625d0773.28570757',
-    'BITRIX24_PHP_SDK_APPLICATION_CLIENT_SECRET' => 'FQZkGDCOSfzYW9XDqkuU4h3X2hNqQHr4t2Q6gsmySSpaM6dMbR',
+    'BITRIX24_PHP_SDK_APPLICATION_CLIENT_ID' => getenv('CLIENT_ID'),
+    'BITRIX24_PHP_SDK_APPLICATION_CLIENT_SECRET' => getenv('CLIENT_SECRET'),
     'BITRIX24_PHP_SDK_APPLICATION_SCOPE' => 'crm'
 ]);
 
@@ -79,7 +85,7 @@ $appProfile = ApplicationProfile::initFromArray([
 $b24Service = $b24ServiceBuilderFactory->initFromRequest($appProfile, AuthToken::initFromPlacementRequest($request), $request->get('DOMAIN'));
 
 // Retrieve the current user's profile using the getMainScope() method and dump the result
-$userProfile = $bitrix24->getMainScope()->main()->getCurrentUserProfile()->getUserProfile();
+$userProfile = $b24Service->getMainScope()->main()->getCurrentUserProfile()->getUserProfile();
 var_dump($userProfile);
 
 /*
@@ -110,7 +116,7 @@ if ($request->request->has('event')) {
 */
 
 // Retrieve the current user's profile using the getMainScope() method and dump the result
-$userProfile = $bitrix24->getMainScope()->main()->getCurrentUserProfile()->getUserProfile();
+$userProfile = $b24Service->getMainScope()->main()->getCurrentUserProfile()->getUserProfile();
 var_dump($userProfile);
 
 // Retrieve a list of deals and address to the first element
@@ -121,7 +127,7 @@ var_dump($userProfile);
 // The TITLE property accesses the title of the first deal
 // var_dump($b24Service->getCRMScope()->lead()->list([], [], ['ID', 'TITLE'])->getLeads()[0]->TITLE);
 
-$leads = $bitrix24->getCRMScope()->lead()->list([], [], ['ID', 'TITLE'])->getLeads();
+$leads = $b24Service->getCRMScope()->lead()->list([], [], ['ID', 'TITLE'])->getLeads();
 if (!empty($leads)) {
     echo 'First Lead Title: ' . $leads[0]->TITLE;
 } else {
