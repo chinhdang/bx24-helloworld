@@ -1,5 +1,5 @@
 <?php
-
+session_start();
 /**
  * This file is part of the bitrix24-php-sdk package.
  *
@@ -33,6 +33,13 @@ require_once 'vendor/autoload.php';
 
 // Create a new request object from the current HTTP request
 $request = Request::createFromGlobals(); 
+
+// Kiểm tra xem có nhận được thông tin xác thực hay không
+if ($request->request->has('auth')) {
+    echo 'Received auth data from Bitrix24.';
+} else {
+    echo 'No auth data received from Bitrix24.';
+};
 
 $log = new Logger('bitrix24-php-sdk'); // Create a new logger instance with the name 'bitrix24-php-sdk'
 $log->pushHandler(new StreamHandler('bitrix24-php-sdk.log')); // Add a stream handler to the logger, which will log messages to a file named 'bitrix24-php-sdk.log'
