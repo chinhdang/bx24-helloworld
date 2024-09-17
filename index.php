@@ -13,7 +13,7 @@
  declare(strict_types=1);
  session_start();
 
-// Hiển thị lỗi
+// Hiển thị lỗi (Chỉ nên bật trong môi trường phát triển)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -84,9 +84,48 @@ $appProfile = ApplicationProfile::initFromArray([
 // Initialize the Bitrix24 service using the application profile, authentication token, and domain from the request
 $b24Service = $b24ServiceBuilderFactory->initFromRequest($appProfile, AuthToken::initFromPlacementRequest($request), $request->get('DOMAIN'));
 
+
 // Retrieve the current user's profile using the getMainScope() method and dump the result
 $userProfile = $b24Service->getMainScope()->main()->getCurrentUserProfile()->getUserProfile();
 var_dump($userProfile);
+
+// Retrieve a list of deals and address to the first element
+// The getCRMScope() method returns the CRM scope of the service, which provides access to the deals
+// The list() method retrieves a list of deals with the specified fields (ID and TITLE)
+// The getLeads() method returns the list of deals
+// The [0] index accesses the first deal in the list
+// The TITLE property accesses the title of the first deal
+// var_dump($b24Service->getCRMScope()->deal()->list([], [], ['ID', 'TITLE'])->getDeals()[0]->TITLE);
+
+$deals = $b24Service->getCRMScope()->deal()->list([], [], ['ID', 'TITLE'])->getDeals();
+if (!empty($deals)) {
+    echo 'First Deal Title: ' . $deals[0]->TITLE;
+} else {
+    echo 'No deal found.';
+}
+
+// Hàm lấy thông tin xác thực
+function getAuth($request)
+{
+    if (isset($_SESSION['AUTH'])) {
+        return AuthToken::initFromArray($_SESSION['AUTH']);
+    } elseif ($request->request->has('AUTH_ID') && $request->request->has('REFRESH_ID')) {
+        $authData = [
+            'access_token' => $request->request->get('AUTH_ID'),
+            'refresh_token' => $request->request->get('REFRESH_ID'),
+            'member_id' => $request->request->get('member_id'),
+            'domain' => $request->request->get('DOMAIN'),
+            'application_token' => $request->request->get('APP_SID'),
+            'expires_in' => $request->request->get('AUTH_EXPIRES'),
+        ];
+
+        $_SESSION['AUTH'] = $authData;
+
+        return AuthToken::initFromArray($authData);
+    } else {
+        return null; // Trả về null thay vì false
+    }
+}
 
 /*
 // Xử lý các sự kiện từ Bitrix24
@@ -114,45 +153,3 @@ if ($request->request->has('event')) {
     // Xử lý nếu cần
 }
 */
-
-// Retrieve the current user's profile using the getMainScope() method and dump the result
-$userProfile = $b24Service->getMainScope()->main()->getCurrentUserProfile()->getUserProfile();
-var_dump($userProfile);
-
-// Retrieve a list of deals and address to the first element
-// The getCRMScope() method returns the CRM scope of the service, which provides access to the deals
-// The list() method retrieves a list of deals with the specified fields (ID and TITLE)
-// The getLeads() method returns the list of deals
-// The [0] index accesses the first deal in the list
-// The TITLE property accesses the title of the first deal
-// var_dump($b24Service->getCRMScope()->lead()->list([], [], ['ID', 'TITLE'])->getLeads()[0]->TITLE);
-
-$leads = $b24Service->getCRMScope()->lead()->list([], [], ['ID', 'TITLE'])->getLeads();
-if (!empty($leads)) {
-    echo 'First Lead Title: ' . $leads[0]->TITLE;
-} else {
-    echo 'No leads found.';
-}
-
-// Hàm lấy thông tin xác thực
-function getAuth($request)
-{
-    if (isset($_SESSION['AUTH'])) {
-        return AuthToken::initFromArray($_SESSION['AUTH']);
-    } elseif ($request->request->has('AUTH_ID') && $request->request->has('REFRESH_ID')) {
-        $authData = [
-            'access_token' => $request->request->get('AUTH_ID'),
-            'refresh_token' => $request->request->get('REFRESH_ID'),
-            'member_id' => $request->request->get('member_id'),
-            'domain' => $request->request->get('DOMAIN'),
-            'application_token' => $request->request->get('APP_SID'),
-            'expires_in' => $request->request->get('AUTH_EXPIRES'),
-        ];
-
-        $_SESSION['AUTH'] = $authData;
-
-        return AuthToken::initFromArray($authData);
-    } else {
-        return null; // Trả về null thay vì false
-    }
-}
