@@ -40,7 +40,23 @@ class CRest
 
         return $result;
     }
-
+   // Phương thức getAuth() đã được cập nhật
+   protected static function getAuth()
+   {
+       if (isset($_SESSION['AUTH'])) {
+           return $_SESSION['AUTH'];
+       } elseif (isset($_REQUEST['AUTH_ID']) && isset($_REQUEST['REFRESH_ID'])) {
+           $_SESSION['AUTH'] = [
+               'access_token' => $_REQUEST['AUTH_ID'],
+               'refresh_token' => $_REQUEST['REFRESH_ID'],
+               'client_endpoint' => ($_REQUEST['PROTOCOL'] == 1 ? 'https' : 'http') . '://' . $_REQUEST['DOMAIN'] . '/rest/',
+           ];
+           return $_SESSION['AUTH'];
+       } else {
+           return false;
+       }
+   }
+   
     public static function callBatch($calls = [])
     {
         $results = [];
